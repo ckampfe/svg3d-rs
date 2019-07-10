@@ -2,6 +2,7 @@ use nalgebra::{Isometry3, Matrix4, Perspective3, Point3, Vector3};
 use std::collections::HashMap;
 use svg::node::element::{Group, Polygon};
 use svg::Document;
+use memmap::MmapOptions;
 
 type StyleMap<V> = HashMap<String, V>;
 type Faces = Vec<Vec<Point3<f32>>>;
@@ -207,7 +208,7 @@ impl<T> Engine<T> {
             .set("fill-opacity", 0.75)
             .set("stroke", "black")
             .set("stroke-linejoin", "round")
-            .set("stroke-width", 0.005);
+            .set("stroke-width", 0.0005);
 
         for face in sorted_faces {
             let [p0, p1, p2] = [face[0], face[1], face[2]];
@@ -238,18 +239,28 @@ fn main() {
         1.0,
         10.0,
         100.0,
-        Point3::new(13.0, 2.0, 20.0),
+        Point3::new(-0.2, -2.0, -0.5),
         Point3::new(0.0, 0.0, 0.0),
         Vector3::y(),
     );
 
-    let mesh = Mesh::<String>::new(
-        octahedron()
-            .iter()
-            .map(|face| vec![15.0 * face[0], 15.0 * face[1], 15.0 * face[2]])
-            .collect(),
-    );
+    let file = std::fs::File::open("/Users/clark/code/Moon.stl").unwrap();
+    let mmap = unsafe { MmapOptions::new().map(&file).unwrap() };
+    let (_, stl) = nom_stl::parse_stl(&mmap).unwrap();
+    let faces: Faces = stl.triangles.iter().map(|triangle: &nom_stl::IndexedTriangle| {
+        let v1 = stl.vertices[triangle.vertices[0]];
+        let v2 = stl.vertices[triangle.vertices[1]];
+        let v3 = stl.vertices[triangle.vertices[2]];
+        let points: Vec<Point3<f32>> = vec![v1, v2, v3].iter().map(|v| {
+            Point3::new(v[0], v[1], v[2])
+        }).collect();
+
+        points
+    }).collect::<Faces>();
+
+    let mesh = Mesh::<String>::new(faces);
+
     let view = View::new(camera, Scene::new(vec![mesh]));
     let engine = Engine::new(vec![view]);
-    engine.render("octahedron.svg".to_string())
+    engine.render("moon.svg".to_string())
 }

@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 nalgebra = "0.18.0"
 svg = "0.5"
+nom_stl = { git = "ssh://git@github.com/fast-radius/nom_stl", rev = "891929f", features = ["hashbrown"] }
+memmap = "0.7.0"
