@@ -1,8 +1,8 @@
+use memmap::MmapOptions;
 use nalgebra::{Isometry3, Matrix4, Perspective3, Point3, Vector3};
 use std::collections::HashMap;
 use svg::node::element::{Group, Polygon};
 use svg::Document;
-use memmap::MmapOptions;
 
 type StyleMap<V> = HashMap<String, V>;
 type Faces = Vec<Vec<Point3<f32>>>;
@@ -247,16 +247,21 @@ fn main() {
     let file = std::fs::File::open("/Users/clark/code/Moon.stl").unwrap();
     let mmap = unsafe { MmapOptions::new().map(&file).unwrap() };
     let (_, stl) = nom_stl::parse_stl(&mmap).unwrap();
-    let faces: Faces = stl.triangles.iter().map(|triangle: &nom_stl::IndexedTriangle| {
-        let v1 = stl.vertices[triangle.vertices[0]];
-        let v2 = stl.vertices[triangle.vertices[1]];
-        let v3 = stl.vertices[triangle.vertices[2]];
-        let points: Vec<Point3<f32>> = vec![v1, v2, v3].iter().map(|v| {
-            Point3::new(v[0], v[1], v[2])
-        }).collect();
+    let faces: Faces = stl
+        .triangles
+        .iter()
+        .map(|triangle: &nom_stl::IndexedTriangle| {
+            let v1 = stl.vertices[triangle.vertices[0]];
+            let v2 = stl.vertices[triangle.vertices[1]];
+            let v3 = stl.vertices[triangle.vertices[2]];
+            let points: Vec<Point3<f32>> = vec![v1, v2, v3]
+                .iter()
+                .map(|v| Point3::new(v[0], v[1], v[2]))
+                .collect();
 
-        points
-    }).collect::<Faces>();
+            points
+        })
+        .collect::<Faces>();
 
     let mesh = Mesh::<String>::new(faces);
 
