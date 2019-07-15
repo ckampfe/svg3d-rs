@@ -310,26 +310,32 @@ impl<'a, T> Engine<'a, T> {
 }
 
 fn main() {
-    let camera = Camera::new(
-        15.0,
-        1.0,
-        10.0,
-        100.0,
-        Point3::new(13.0, 2.0, 20.0),
-        Point3::new(0.0, 0.0, 0.0),
-        Vector3::y(),
-    );
+    let mut i = 0;
 
-    let octahedron: Vec<Face> = octahedron()
-        .iter()
-        .map(|face| [15.0 * face[0], 15.0 * face[1], 15.0 * face[2]])
-        .collect();
+    for x in (-24..24).step_by(1) {
+        let camera = Camera::new(
+            15.0,
+            1.0,
+            10.0,
+            100.0,
+            Point3::new(x as f32, 12.0, -20.0),
+            Point3::new(0.0, 0.0, 0.0),
+            Vector3::y(),
+        );
 
-    let mesh = Mesh::<String>::new(&octahedron);
-    let meshes = [mesh];
+        let filename = ["cube_".to_string(), i.to_string(), ".svg".to_string()].join("");
 
-    let view = View::new(camera, Scene::new(&meshes));
-    let views = [view];
-    let engine = Engine::new(&views);
-    engine.render("octahedron.svg".to_string())
+        i += 1;
+
+        let c = &cube()
+            .iter()
+            .map(|face| [15.0 * face[0], 15.0 * face[1], 15.0 * face[2]])
+            .collect::<Vec<Face>>();
+        let mesh = Mesh::<String>::new(c);
+        let meshes = [mesh];
+        let view = View::new(camera, Scene::new(&meshes));
+        let views = [view];
+        let engine = Engine::new(&views);
+        engine.render(filename)
+    }
 }
